@@ -124,7 +124,7 @@ function mlScores(texts) {
 async function classify(items) {
     let probs = null;
     try {
-        probs = await mlScores(items.map(i => i.text));
+        probs = await mlScores(items.map(i => ({ text: i.text, dup: i.dup, authorDup: i.authorDup })));
     } catch (e) {
         console.log("ML ใช้ไม่ได้ ใช้กฎอย่างเดียว:", e.message);
     }

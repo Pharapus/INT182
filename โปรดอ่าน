@@ -1,11 +1,4 @@
 1) ตั้งค่า .env  (คัดลอกจาก .env.example แล้วใส่ YT_API_KEY="...")
-2) npm install  แล้ว  pip install -r requirements.txt
+2) npm install  แล้ว  pip3 install -r requirements.txt
 3) npm start  แล้วเปิด http://localhost:3000
 
-เทรนโมเดลใหม่:
-   python train.py
-   - อ่านข้อมูลจาก data/to_label.csv (คอลัมน์ text, label = spam / normal)
-   - เขียนทับ spam_model.joblib (สำรองเก่าไว้ที่ spam_model.joblib.bak) และสร้าง metrics.json
-   - เทรนเสร็จให้รีสตาร์ท npm start
-
-เพิ่มข้อมูลให้โมเดลเก่งขึ้น: เติมแถวใหม่ใน data/to_label.csv แล้วเทรนอีกรอบ

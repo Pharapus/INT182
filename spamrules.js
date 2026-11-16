@@ -81,6 +81,8 @@ export function analyze(comments) {
             publishedAt: p.publishedAt ?? null,
             score,
             reasons,
+            dup: ctx.dup,
+            authorDup: ctx.authorDup,
             lowQuality: p.t.length <= 3 || LOW_QUALITY.test(p.t)
         };
     });

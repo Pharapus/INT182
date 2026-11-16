@@ -1,0 +1,31 @@
+{
+  "trained_at": "2026-11-16T15:57:43+00:00",
+  "sklearn_version": "1.9.1",
+  "data_file": "to_label.csv",
+  "repeat_features": "simulated",
+  "label_counts": {
+    "normal": 1838,
+    "spam": 114
+  },
+  "test_size": 391,
+  "test_spam_text_only": {
+    "precision": 0.65,
+    "recall": 0.5652,
+    "f1-score": 0.6047
+  },
+  "test_confusion_matrix_TN_FP_FN_TP": [
+    361,
+    7,
+    10,
+    13
+  ],
+  "repeat_behavior": {
+    "same_author_1x_spam_rate": 0.0411,
+    "same_author_2x_spam_rate": 0.7603,
+    "same_author_3x_spam_rate": 1.0,
+    "same_author_5x_spam_rate": 1.0,
+    "many_authors_5x_spam_rate": 0.0685
+  },
+  "cv_f1_mean": 0.6716,
+  "cv_f1_std": 0.084
+}
