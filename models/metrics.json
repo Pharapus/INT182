@@ -1,0 +1,37 @@
+{
+  "trained_at": "2026-11-15T10:07:52+00:00",
+  "sklearn_version": "1.9.1",
+  "data_file": "to_label.csv",
+  "labels": [
+    "normal",
+    "spam"
+  ],
+  "label_counts": {
+    "normal": 1838,
+    "spam": 114
+  },
+  "n_positive": 114,
+  "n_negative": 1838,
+  "uses_dup_feature": true,
+  "n_dup_rows": 83,
+  "n_dup_spam_rows": 19,
+  "dup_coefficients": {
+    "is_dup": 2.783,
+    "log_count": -1.21
+  },
+  "test_size": 391,
+  "test_spam": {
+    "precision": 0.5862,
+    "recall": 0.7391,
+    "f1-score": 0.6538
+  },
+  "test_confusion_matrix_TN_FP_FN_TP": [
+    356,
+    12,
+    6,
+    17
+  ],
+  "cv_f1_mean": 0.7083,
+  "cv_f1_std": 0.0901,
+  "note": "ข้อมูล spam จริงมีน้อย ตัวเลขนี้ไม่ควรตีความเกินกว่าชุดข้อมูลนี้"
+}
