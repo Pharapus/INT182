@@ -1,0 +1,20 @@
+{
+  "name": "yt-spam-web",
+  "version": "2.1.0",
+  "description": "ตรวจ spam ในคอมเมนต์ YouTube ด้วยโมเดล ML (TF-IDF + Logistic Regression) ที่ดูทั้งข้อความและจำนวนครั้งที่ซ้ำ (ML ล้วนๆ ไม่มีกฎ)",
+  "type": "module",
+  "main": "app/server.js",
+  "scripts": {
+    "start": "node app/server.js",
+    "collect": "node tools/collect_comments.js",
+    "test": "node --test",
+    "test:py": "python3 -m unittest discover -s tests -v",
+    "test:all": "npm test && npm run test:py"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "axios": "^1.7.0"
+  }
+}
