@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ตรวจ Spam ในคอมเมนต์ YouTube</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f8;--fg:#14202b;--muted:#5b6b7a;--panel:#fff;--line:#d9e0e7;--spam:#c8322b;--review:#b7791f;--low:#7a8794;--ok:#1f7a6b;--accent:#2b4c7e;--onaccent:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#10171e;--fg:#e6ecf1;--muted:#93a3b2;--panel:#18222b;--line:#2b3946;--spam:#ff6b62;--review:#e3a94a;--low:#93a3b2;--ok:#4fc3ad;--accent:#8fb3ea;--onaccent:#10171e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.65 "Noto Sans Thai",system-ui,sans-serif}
+main{max-width:800px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:1.75rem;line-height:1.3;margin:0 0 6px;font-weight:700}
+.sub{color:var(--muted);margin:0 0 24px}
+form{display:flex;gap:10px;flex-wrap:wrap}
+input[type=url]{flex:1 1 340px;padding:10px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--fg);font:inherit}
+select,button{font:inherit;padding:9px 14px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
+button{cursor:pointer;font-weight:500}
+button.go{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}
+button:disabled{opacity:.6;cursor:wait}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.opts{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:10px;color:var(--muted);font-size:.9rem}
+#msg{margin-top:20px;padding:10px 14px;border-left:4px solid var(--spam);background:var(--panel);border-radius:0 6px 6px 0}
+#msg.info{border-left-color:var(--accent);color:var(--muted)}
+#out{margin-top:28px}
+.vt{font-weight:700;font-size:1.1rem;margin:0}
+.vm{color:var(--muted);font-size:.9rem;margin:2px 0 16px}
+.share{display:flex;height:16px;border-radius:3px;overflow:hidden;background:var(--line)}
+.share i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin:12px 0 20px}
+.legend button{border:0;background:none;padding:2px 0;color:var(--muted);border-bottom:2px solid transparent;border-radius:0}
+.legend button b{color:var(--fg);font-size:1.2rem;margin-right:4px}
+.legend button small{margin-left:4px}
+.legend button[aria-pressed="true"]{border-bottom-color:var(--fg);color:var(--fg)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+ul{list-style:none;margin:0;padding:0}
+li{background:var(--panel);border-left:4px solid var(--line);padding:10px 14px;margin-bottom:8px;border-radius:0 6px 6px 0;overflow-wrap:anywhere}
+li.spam{border-left-color:var(--spam)}li.review{border-left-color:var(--review)}li.low_quality{border-left-color:var(--low)}li.normal{border-left-color:var(--ok)}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:.82rem;color:var(--muted)}
+.chip{border:1px solid var(--line);border-radius:999px;padding:0 9px}
+.more{margin-top:8px}
+.note{margin-top:32px;color:var(--muted);font-size:.9rem;max-width:64ch}
+</style>
+</head>
+<body>
+<main>
+<h1>ตรวจ Spam ในคอมเมนต์ YouTube</h1>
+<p class="sub">วางลิงก์วิดีโอ ระบบจะดึงคอมเมนต์มาตรวจและสรุปว่า spam กับคอมเมนต์ปกติมีเท่าไหร่</p>
+
+<form id="f">
+  <input type="url" id="url" placeholder="https://www.youtube.com/watch?v=..." required aria-label="ลิงก์วิดีโอ YouTube">
+  <button class="go" id="go">ตรวจสอบ</button>
+</form>
+<div class="opts">
+  <label>จำนวนคอมเมนต์ที่ดึง
+    <select id="max"><option>100</option><option selected>500</option><option>1000</option><option>2000</option></select></label>
+</div>
+
+<div id="msg" hidden role="status"></div>
+
+<section id="out" hidden>
+  <p class="vt" id="vt"></p>
+  <p class="vm" id="vm"></p>
+  <div class="share" id="share"></div>
+  <div class="legend" id="legend"></div>
+  <ul id="list"></ul>
+  <button class="more" id="more" hidden>แสดงเพิ่ม</button>
+</section>
+
+<p class="note">ผลมาจากโมเดลที่เทรนไว้ร่วมกับกฎที่กำหนดไว้ (ถ้าไม่มีไฟล์โมเดลจะใช้กฎอย่างเดียว) คอมเมนต์ที่โมเดลให้คะแนน spam ตั้งแต่ 50% หรือโดนกฎหนักๆ จะนับเป็น Spam ที่เหลือนับเป็นปกติ ตัวเลขนับจากคอมเมนต์ระดับบนสุดที่ดึงมา (ไม่รวมคอมเมนต์ตอบกลับ)</p>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const META = { spam:["Spam","--spam"], normal:["ปกติ","--ok"] };
+const ORDER = ["spam","normal"];
+const PAGE = 100;
+let data = null, filter = "all", shown = PAGE;
+
+const labelOf = i => i.label || ((i.score >= 1 || i.lowQuality) ? "spam" : "normal");
+
+function showMsg(text, info){
+  const m = $("#msg"); m.textContent = text; m.hidden = !text; m.className = info ? "info" : "";
+}
+
+function render(){
+  const items = data.items.map(i => ({...i, label: labelOf(i)}));
+  const total = items.length;
+  const by = k => items.filter(i => i.label === k).length;
+  const pct = n => total ? (n/total*100).toFixed(1) + "%" : "0%";
+
+  $("#out").hidden = false;
+  $("#vt").textContent = data.video.title;
+  $("#vm").textContent = `${data.video.channel} · ดึงมา ${total.toLocaleString()} จากทั้งหมด ${data.video.commentCount.toLocaleString()} คอมเมนต์`;
+
+  $("#share").replaceChildren(...ORDER.map(k => {
+    const e = document.createElement("i");
+    e.style.width = (total ? by(k)/total*100 : 0) + "%";
+    e.style.background = `var(${META[k][1]})`; e.title = `${META[k][0]} ${pct(by(k))}`;
+    return e;
+  }));
+
+  const mk = (key, name, n, color) => {
+    const b = document.createElement("button");
+    b.setAttribute("aria-pressed", filter === key);
+    if (color){ const d = document.createElement("span"); d.className = "dot"; d.style.background = `var(${color})`; b.append(d); }
+    const s = document.createElement("b"); s.textContent = n.toLocaleString();
+    const sm = document.createElement("small"); sm.textContent = key === "all" ? "" : `(${pct(n)})`;
+    b.append(s, name, sm);
+    b.onclick = () => { filter = key; shown = PAGE; render(); };
+    return b;
+  };
+  $("#legend").replaceChildren(mk("all","ทั้งหมด",total), ...ORDER.map(k => mk(k, META[k][0], by(k), META[k][1])));
+
+  const list = (filter === "all" ? items : items.filter(i => i.label === filter))
+    .sort((a,b) => (b.label === "spam") - (a.label === "spam") || b.score - a.score);
+  if (!list.length){
+    const li = document.createElement("li"); li.textContent = "ไม่มีคอมเมนต์ในกลุ่มนี้"; $("#list").replaceChildren(li);
+    $("#more").hidden = true; return;
+  }
+  $("#list").replaceChildren(...list.slice(0, shown).map(i => {
+    const li = document.createElement("li"); li.className = i.label;
+    const p = document.createElement("div"); p.textContent = i.text || "(ว่าง)";
+    const m = document.createElement("div"); m.className = "meta";
+    const info = document.createElement("span");
+    info.textContent = `${META[i.label][0]} · คะแนนกฎ ${i.score}${i.ml == null ? "" : ` · โมเดล ${(i.ml*100).toFixed(0)}%`} · ${i.author || "ไม่ระบุชื่อ"} · ถูกใจ ${i.likes}`;
+    m.append(info);
+    const why = i.reasons.length ? i.reasons : (i.ml == null && i.lowQuality ? ["ข้อความสั้น/อีโมจิล้วน"] : []);
+    why.forEach(r => { const c = document.createElement("span"); c.className = "chip"; c.textContent = r; m.append(c); });
+    li.append(p, m); return li;
+  }));
+  $("#more").hidden = list.length <= shown;
+}
+
+$("#f").onsubmit = async e => {
+  e.preventDefault();
+  const go = $("#go"); go.disabled = true;
+  $("#out").hidden = true; showMsg("กำลังดึงและตรวจคอมเมนต์…", true);
+  try {
+    let res;
+    try {
+      res = await fetch("/api/analyze", {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ url: $("#url").value.trim(), max: Number($("#max").value) })
+      });
+    } catch {
+      throw new Error("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจว่า node server.js ยังรันอยู่ และเปิดหน้านี้ผ่าน http://localhost:3000");
+    }
+    const raw = await res.text();
+    let json;
+    try { json = JSON.parse(raw); }
+    catch {
+      throw new Error(`เซิร์ฟเวอร์ตอบกลับไม่ใช่ JSON (สถานะ ${res.status}) หน้านี้ต้องเปิดผ่าน node server.js ไม่ใช่เปิดไฟล์ตรงๆ หรือผ่านเซิร์ฟเวอร์อื่น`);
+    }
+    if (!res.ok) throw new Error(json.error || "เกิดข้อผิดพลาด");
+    data = json; filter = "all"; shown = PAGE;
+    showMsg(json.fetched ? "" : "วิดีโอนี้ยังไม่มีคอมเมนต์", !json.fetched);
+    if (json.fetched) render();
+  } catch (err) {
+    showMsg(err.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
+  } finally { go.disabled = false; }
+};
+if (location.protocol === "file:") showMsg("เปิดไฟล์นี้ตรงๆ ใช้ไม่ได้ ให้รัน node server.js แล้วเปิด http://localhost:3000");
+$("#more").onclick = () => { shown += PAGE; render(); };
+</script>
+</body>
+</html>
